@@ -60,7 +60,7 @@ Slot B tidak pernah di-dump: HP ini boot dari slot `a` dan slot `b` kosong pada 
 ### Linux
 
 ```bash
-sudo dnf install -y android-tools libusb1 unzip      # Debian/Ubuntu: android-sdk-platform-tools-common libusb-1.0-0 unzip
+sudo dnf install -y android-tools libusb1 unzip usbutils   # Debian/Ubuntu: android-tools-adb libusb-1.0-0 unzip usbutils
 ```
 
 Aturan udev memberi akses USB `1782:4d00` (mode download Unisoc) ke user yang sedang login,
@@ -100,7 +100,9 @@ Linux:
 mkdir -p ~/mblu21-stock && cd ~/mblu21-stock
 gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_meizu_mblu21
 cat super.bin.part0 super.bin.part1 super.bin.part2 > super.bin
-unzip -q tools-linux.zip -d tools && chmod +x tools/spd_dump tools/gen_spl-unlock tools/chsize
+unzip -q tools-linux.zip && mv tools-linux tools
+chmod +x tools/spd_dump tools/gen_spl-unlock tools/chsize
+./tools/spd_dump -h | head -1                # harus mencetak "branch:HEAD, sha1:f2fc7792…"
 sha256sum -c SHA256SUMS-full_dump.txt        # 44 baris (42 image partisi + payload tool + tabel partisi), semuanya "OK"
 sha256sum -c SHA256SUMS-logical.txt          # 7 baris, semuanya "OK"
 ```
@@ -111,9 +113,15 @@ Windows (PowerShell):
 mkdir C:\mblu21\stock -Force; cd C:\mblu21\stock
 gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_meizu_mblu21
 cmd /c copy /b super.bin.part0+super.bin.part1+super.bin.part2 super.bin
-Expand-Archive tools-windows.zip -DestinationPath tools -Force
+Expand-Archive tools-windows.zip -DestinationPath . -Force
+Rename-Item tools-windows tools
+.\tools\spd_dump.exe -h | Select-Object -First 1   # harus mencetak "branch:HEAD, sha1:…"
 Get-FileHash .\boot_a.bin -Algorithm SHA256      # bandingkan dengan SHA256SUMS-full_dump.txt
 ```
+
+Kedua zip membawa folder teratas (`tools-linux/` dan `tools-windows/`), jadi ekstrak ke folder
+kerja lalu ganti namanya. `unzip -d tools` menghasilkan `tools/tools-linux/`, dan semua
+perintah sesudahnya gagal karena `spd_dump` tidak ada di tempat yang disebut panduan.
 
 Setelah ketiga bagian `super` digabung, hash-nya harus
 `0b263da0a621f9544a462dd8486a5e0869a339bd6e509d15654cc8d64d9f1e97` (tercatat di
@@ -288,11 +296,17 @@ mode download, bukan lewat `adb shell su`. Jalankan dari folder terpisah supaya 
 image yang sudah diunduh:
 
 ```bash
-mkdir -p ~/mblu21-stock/readback && cd ~/mblu21-stock/readback
+mkdir -p ~/mblu21-stock/readback
+cd ~/mblu21-stock/tools
 Q="exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec"
-../tools/spd_dump --wait 300 $Q r boot_a r init_boot_a r vbmeta_a r dtbo_a reset
-sha256sum boot_a.bin init_boot_a.bin vbmeta_a.bin dtbo_a.bin
+./spd_dump --wait 300 $Q path ../readback r boot_a r init_boot_a r vbmeta_a r dtbo_a reset
+cd ../readback && sha256sum boot_a.bin init_boot_a.bin vbmeta_a.bin dtbo_a.bin
 ```
+
+Perintahnya tetap dijalankan **dari folder `tools`**: `exec_addr` membuka
+`custom_exec_no_verify_<addr>.bin` dan `fdl` membuka `fdl1-dl.bin`/`fdl2-dl.bin` relatif
+terhadap folder kerja (`spd_dump.c:758`). Berkas hasil `r` dialihkan ke `readback/` dengan
+perintah `path` milik tool ("save directory for `r`, `read_part(s)`, `read_flash`, `read_mem`").
 
 Nilainya harus sama dengan baris berkas yang sama di `SHA256SUMS-full_dump.txt`
 (`boot_a` `3a78e139…`, `vbmeta_a` `83789a72…`). Windows:
@@ -301,8 +315,8 @@ Nilainya harus sama dengan baris berkas yang sama di `SHA256SUMS-full_dump.txt`
 cd /d C:\mblu21\stock\tools
 set Q=exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec
 mkdir ..\readback
+spd_dump --wait 300 %Q% path ..\readback r boot_a r init_boot_a r vbmeta_a r dtbo_a reset
 cd ..\readback
-spd_dump --wait 300 %Q% r boot_a r init_boot_a r vbmeta_a r dtbo_a reset
 powershell -c "Get-FileHash .\boot_a.bin, .\vbmeta_a.bin -Algorithm SHA256"
 ```
 

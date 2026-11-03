@@ -80,10 +80,11 @@ Setelah stok tidak ada root, jadi partisi dibandingkan dengan membacanya kembali
 download (bukan `adb shell su`):
 
 ```bash
-mkdir -p ~/mblu21-stock/readback && cd ~/mblu21-stock/readback
+mkdir -p ~/mblu21-stock/readback
+cd ~/mblu21-stock/tools
 Q="exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec"
-../tools/spd_dump --wait 300 $Q r boot_a r init_boot_a r vendor_boot_a r dtbo_a r vbmeta_a reset
-sha256sum boot_a.bin init_boot_a.bin vendor_boot_a.bin dtbo_a.bin vbmeta_a.bin
+./spd_dump --wait 300 $Q path ../readback r boot_a r init_boot_a r vendor_boot_a r dtbo_a r vbmeta_a reset
+cd ../readback && sha256sum boot_a.bin init_boot_a.bin vendor_boot_a.bin dtbo_a.bin vbmeta_a.bin
 ```
 
 Kelima nilai itu harus sama dengan baris berkas yang sama di `SHA256SUMS-full_dump.txt`.

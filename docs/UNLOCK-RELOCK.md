@@ -36,6 +36,10 @@ splash menampilkan peringatan oranye. Sebagian aplikasi perbankan menolak jalan.
 
 ## 3. Unlock — urutan yang dipakai di unit ini
 
+Semua perintah di halaman ini dijalankan dari folder tool, `~/mblu21-stock/tools` (tata
+letaknya sama dengan [FLASH-STOCK.md §2](FLASH-STOCK.md#2-ambil-rilis-susun-folder-verifikasi)),
+karena `spd_dump` membuka payload dan FDL relatif terhadap folder kerja.
+
 Prasyarat: tools dari rilis CVE-2022-38694 di satu folder (`spd_dump`, `gen_spl-unlock`,
 `chsize`, `fdl1-dl.bin`, `fdl2-dl.bin`, `fdl2-cboot.bin`, `misc-wipe.bin`,
 `spl-unlock.bin`, `custom_exec_no_verify_65015f08.bin`), HP di mode download
