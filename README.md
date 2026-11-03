@@ -10,7 +10,7 @@ vendor yang tidak pernah dirilis Meizu.
 | SoC | Unisoc UMS9230 / Tiger T606 |
 | Penyimpanan | UFS, A/B, partisi dinamis (`super`) |
 | Build stok | Android 14, `U01005` (`1745906188`), patch keamanan 2025-04-05 |
-| Sumber | dump 44 partisi dari HP ini pada 2026-10-31, di-hash saat dump |
+| Sumber | dump 42 image partisi dari HP ini pada 2026-10-31 (41 `.bin` + `super`), di-hash saat dump |
 | Rilis | [`mblu21-stock-U01005-20261031`](../../releases/tag/mblu21-stock-U01005-20261031) |
 
 ## Dokumen

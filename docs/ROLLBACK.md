@@ -92,8 +92,8 @@ Kelima nilai itu harus sama dengan baris berkas yang sama di `SHA256SUMS-full_du
 
 ## 5. Kalau masih gagal boot
 
-1. Tulis ulang **semua** partisi dari rilis, bukan hanya tiga di atas — perbedaan di
-   `splloader`/`uboot` atau rantai `vbmeta` juga menahan boot.
+1. Tulis ulang **semua** 42 image partisi dari rilis, bukan hanya tiga di atas — perbedaan di
+   modem/NV, `splloader`/`uboot`, atau rantai `vbmeta` juga menahan boot.
 2. Periksa `vbmeta_a` dan rantai `vbmeta_*`: HP ini menolak `vbmeta` apa pun yang bukan dari
    Meizu dan berhenti di logo.
 3. HP yang tidak mau boot bukan brick: BootROM selalu bisa dijangkau lewat mode download

@@ -76,9 +76,12 @@ Aturan yang sama ada di dalam `tools-linux.zip` sebagai `51-unisoc-download.rule
 
 ### Windows
 
-1. Pasang driver Unisoc dari `tools-windows.zip`: jalankan
-   `SPD_Driver\Win10\DPInst64.exe` sebagai administrator (Windows 7/8: folder `Win7`/`Win8`).
+1. Pasang driver Unisoc dari folder hasil ekstrak §2: jalankan
+   `tools\SPD_Driver\Win10\DPInst64.exe` sebagai administrator. Zip itu hanya memuat folder
+   driver `Win10` — itulah yang dipakai Windows 10 dan 11.
 2. Pasang platform-tools Google kalau ingin memakai `adb` untuk verifikasi.
+3. Semua perintah di halaman ini dijalankan dari `C:\mblu21\stock\tools`, tanpa awalan
+   `./`.
 
 ## 2. Ambil rilis, susun folder, verifikasi
 
@@ -98,8 +101,8 @@ mkdir -p ~/mblu21-stock && cd ~/mblu21-stock
 gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_meizu_mblu21
 cat super.bin.part0 super.bin.part1 super.bin.part2 > super.bin
 unzip -q tools-linux.zip -d tools && chmod +x tools/spd_dump tools/gen_spl-unlock tools/chsize
-sha256sum -c SHA256SUMS-full_dump.txt        # 44 baris, semuanya harus "OK"
-sha256sum -c SHA256SUMS-logical.txt          # 7 baris, semuanya harus "OK"
+sha256sum -c SHA256SUMS-full_dump.txt        # 44 baris (42 image partisi + payload tool + tabel partisi), semuanya "OK"
+sha256sum -c SHA256SUMS-logical.txt          # 7 baris, semuanya "OK"
 ```
 
 Windows (PowerShell):
