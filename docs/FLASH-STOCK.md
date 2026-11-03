@@ -60,8 +60,9 @@ jadi `spd_dump` tidak perlu dijalankan sebagai root.
 
 1. Ekstrak `tools-windows.zip` ke path pendek yang bisa ditulis, mis. `C:\mblu21\tools`.
    Tool menulis berkas ke folder kerjanya.
-2. Pasang driver Unisoc: jalankan `SPD_Driver\Win10\DPInst64.exe` sebagai administrator
-   (Windows 7/8: folder `Win7`/`Win8`).
+2. Pasang driver Unisoc: jalankan `SPD_Driver\Win10\DPInst64.exe` sebagai administrator.
+   `tools-windows.zip` hanya memuat folder driver `Win10` — itulah yang dipakai Windows 10
+   dan 11.
 3. Pasang platform-tools Google kalau ingin memakai `adb`/`fastboot` untuk verifikasi.
 4. Buka Command Prompt di folder tool: `cd /d C:\mblu21\tools`. Semua perintah di bawah
    sama, tanpa awalan `./`.
@@ -72,7 +73,7 @@ jadi `spd_dump` tidak perlu dijalankan sebagai root.
 mkdir -p ~/mblu21-stock && cd ~/mblu21-stock
 gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_meizu_mblu21
 cat super.bin.part0 super.bin.part1 super.bin.part2 > super.bin
-sha256sum -c SHA256SUMS-full_dump.txt        # 44 baris, semuanya harus "OK"
+sha256sum -c SHA256SUMS-full_dump.txt        # 44 baris (42 image partisi + payload tool + tabel partisi), semuanya harus "OK"
 ```
 
 Windows (PowerShell), satu berkas:

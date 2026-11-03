@@ -36,7 +36,7 @@ sebagian — SELinux permissive, dm-verity mati untuk partisi logis, sebagian ko
 Ringkas jalur install yang dipakai proyek itu (detail dan urutan pastinya ada di catatan
 rilis, ikuti itu):
 
-1. Unlock bootloader — [UNLOCK-RELOCK.md](UNLOCK-RELOCK.md), dan ambil dump 44 partisi.
+1. Unlock bootloader — [UNLOCK-RELOCK.md](UNLOCK-RELOCK.md), dan ambil dump 42 image partisi.
 2. Tulis `vendor_boot.img` ke `vendor_boot_a` dari mode download (`spd_dump`).
 3. Boot ke recovery (Lineage Recovery ada di `vendor_boot`).
 4. Gabung bagian `super.img`, tulis `super.img` (sparse) + `init_boot.img` dari recovery

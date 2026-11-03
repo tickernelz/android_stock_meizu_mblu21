@@ -2,7 +2,7 @@
 
 > **MENGHAPUS DATA / MERUSAK BOOT.** Semua perintah di halaman ini menyentuh bootloader.
 > Kesalahan di sini bisa membuat HP tidak mau boot. Jangan jalankan tanpa keputusan pemilik HP
-> dan tanpa dump 44 partisi yang sudah diverifikasi ([README](../README.md)).
+> dan tanpa dump 42 image partisi yang sudah diverifikasi ([README](../README.md)).
 
 ## 1. Status faktual
 

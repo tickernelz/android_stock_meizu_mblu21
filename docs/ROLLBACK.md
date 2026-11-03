@@ -91,7 +91,7 @@ done
 
 ## 5. Kalau masih gagal boot
 
-1. Tulis ulang **semua** 44 partisi dari rilis (bukan hanya tiga di atas) — perbedaan kecil
+1. Tulis ulang **semua** 42 image partisi dari rilis (bukan hanya tiga di atas) — perbedaan kecil
    di modem/NV atau `splloader`/`uboot` juga bisa menahan boot.
 2. Periksa `vbmeta_a` dan rantai `vbmeta_*`: HP ini menolak `vbmeta` apa pun yang bukan dari
    Meizu dan berhenti di logo.
