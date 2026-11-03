@@ -31,7 +31,7 @@ berisi 2,9 GB, 255 paket terpasang, dan FBE masih aktif. Metode CVE-2022-38694 h
 flag di `miscdata`; ia tidak menjalankan wipe seperti `fastboot flashing unlock` di perangkat
 lain.
 
-Yang hilang: **Play Integrity** lolos (bootloader terbuka, tanpa keybox perangkat keras), dan
+Yang hilang: **Play Integrity** lolos (bootloader terbuka), dan
 splash menampilkan peringatan oranye. Sebagian aplikasi perbankan menolak jalan.
 
 ## 3. Unlock — urutan yang dipakai di unit ini
@@ -150,5 +150,5 @@ prosedur yang harus dibuktikan di HP sendiri, bukan resep yang sudah terbukti.
   dan kabel yang terbukti jalan.
 - Relock pada HP yang pernah di-root tanpa mengembalikan `init_boot_a` stok dapat membuat
   boot gagal; kembalikan dulu.
-- Relock tidak mengembalikan Play Integrity kalau ada jejak lain (mis. keybox hilang), dan
+- Relock tidak mengembalikan Play Integrity kalau ada jejak lain, dan
   tidak mengembalikan data yang sudah dihapus.
