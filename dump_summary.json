@@ -13,17 +13,18 @@
  "full_dump": {
   "path": "C:\\Users\\Public\\mblu21-backup\\full_dump",
   "files": 44,
-  "bytes": 6070000000,
+  "bin_files": 43,
+  "bytes": 6068407293,
   "partitions": "all_lite (no cache/blackbox/userdata)"
  },
  "logical": {
-  "system_a": 660400000,
-  "vendor_a": 765500000,
-  "product_a": 1772100000,
-  "system_ext_a": 427300000,
-  "odm_a": 13100000,
-  "vendor_dlkm_a": 9000000,
-  "system_dlkm_a": 300000
+  "system_a": 660393984,
+  "vendor_a": 765497344,
+  "product_a": 1772081152,
+  "system_ext_a": 427286528,
+  "odm_a": 13135872,
+  "vendor_dlkm_a": 9031680,
+  "system_dlkm_a": 348160
  },
  "extracted": {
   "path": "/home/zhafron/re/mblu21/extracted",
@@ -38,5 +39,10 @@
   "locked": true,
   "verifiedbootstate": "green"
  },
- "next": "unlock bootloader via CVE-2022-38694, then flash LineageOS GSI"
+ "notes": [
+  "l_fixnv1_a.bin and l_fixnv2_a.bin are byte-identical (both 2097152 bytes, neither is a shifted copy)",
+  "l_runtimenv1.bin and l_runtimenv2.bin are byte-identical (both 2097152 bytes)",
+  "spd_dump 'w' erases l_runtimenv* instead of writing, rewrites l_fixnv1_a as an NV packet, and skips calinv"
+ ],
+ "next": "unlock bootloader, then install LineageOS; see the repository docs"
 }

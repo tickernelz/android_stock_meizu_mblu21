@@ -43,8 +43,9 @@ jadi `super.bin` dipecah tiga bagian).
 di-dump.
 
 Nama berkas sama dengan nama partisi di `/dev/block/by-name` (mis. `boot_a.bin` →
-partisi `boot_a`), kecuali `custom_exec_no_verify_65015f08.bin` (payload untuk tool, bukan
-partisi) dan `partition_1793459407.xml` (tabel partisi).
+partisi `boot_a`). Pengecualian penamaan —`uboot_a.bin` ditulis sebagai `uboot`,
+`l_runtimenv*` tanpa akhiran slot, dan dua berkas yang bukan partisi— ada di
+[docs/FLASH-STOCK.md §0](docs/FLASH-STOCK.md#0-isi-rilis-dan-nama-partisi).
 
 ## Verifikasi sebelum menulis apa pun
 
@@ -77,5 +78,12 @@ Select-String -Path .\SHA256SUMS-full_dump.txt -Pattern boot_a
   `l_runtimenv1`, `l_runtimenv2`, `persist`, dan `miscdata` menyimpan data produksi HP ini —
   `l_runtimenv1.bin` antara lain memuat nomor 15 digit bergaya IMEI. Menulisnya ke perangkat
   lain ilegal di banyak negara dan merusak perangkat itu.
+- **Tidak semua partisi NV bisa dipulihkan dengan `w`.** Tool ini mengosongkan `l_runtimenv*`
+  alih-alih menulisnya, menulis ulang `l_fixnv1_a` sebagai paket NV (bukan byte asli), dan
+  melewati `calinv` sepenuhnya. Rinciannya di
+  [docs/FLASH-STOCK.md §4.4](docs/FLASH-STOCK.md#44-partisi-nv-apa-yang-sebenarnya-dilakukan-w).
+- **Dua pasang partisi NV berisi byte yang sama.** `l_fixnv1_a` = `l_fixnv2_a` dan
+  `l_runtimenv1` = `l_runtimenv2` pada dump ini; keduanya berukuran penuh dan bukan salinan
+  tergeser.
 - Image ini bukan milik proyek ini: haknya ada pada Meizu dan Unisoc, dipublikasikan ulang
   hanya agar pemilik perangkat bisa memulihkan perangkatnya sendiri. Tanpa jaminan apa pun.
