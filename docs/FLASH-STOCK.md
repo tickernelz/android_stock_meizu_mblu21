@@ -263,7 +263,7 @@ Ini bagian yang paling mudah disalahpahami, dan perilakunya berasal dari kode to
 | `w l_runtimenv1 <file>` / `w l_runtimenv2 <file>` | partisi **dikosongkan**. Tool tidak menulis data apa pun untuk nama yang mengandung `runtimenv` (`common.c:1174`), jadi hasilnya `Erase Part Done`, bukan `Write Part Done`. |
 | `w l_fixnv1_a <file>` | berkas dibaca sebagai **paket NV**: header `0x200` dibuang, record di-parse, CRC16 dihitung ulang, lalu ditulis ulang (`load_nv_partition`). Isi partisi **tidak** byte-identik dengan berkas, jadi hash-nya tidak akan cocok dengan `SHA256SUMS-full_dump.txt`. |
 | `w l_fixnv2_a <file>` | ditulis mentah, byte-per-byte. |
-| `w calinv <file>` | **tidak melakukan apa pun** — nama `calinv` dilewati tool (`common.c:1176`). |
+| `w calinv <file>` | **tidak melakukan apa pun** — nama `calinv` dilewati tool (`common.c:1175`). |
 | `w prodnv <file>`, `w persist <file>` | ditulis mentah. |
 
 Kesimpulan praktis: dari rilis ini, partisi NV yang bisa dipulihkan dengan `w` adalah
