@@ -1,0 +1,4 @@
+parts/
+tools-windows/
+tools-linux/
+*.zip
