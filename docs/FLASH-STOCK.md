@@ -15,8 +15,14 @@ dimasukkan lagi ke mode download untuk partisi berikutnya.
 
 Nama berkas = nama partisi di `/dev/block/by-name`. `boot_a.bin` ditulis ke partisi
 `boot_a`, `vbmeta_system_a.bin` ke `vbmeta_system_a`, `super.bin` ke `super`, dan
-seterusnya. Dua pengecualian: `custom_exec_no_verify_65015f08.bin` adalah payload untuk
-tool (bukan partisi) dan `partition_1793459407.xml` adalah tabel partisi.
+seterusnya, dengan tiga pengecualian:
+
+- `uboot_a.bin` ditulis ke nama `uboot` (tool memetakan sendiri; bukan `uboot_a`).
+- `l_runtimenv1.bin` dan `l_runtimenv2.bin` dipanggil tanpa akhiran slot
+  (`l_runtimenv1`, `l_runtimenv2`), sedangkan `l_fixnv1_a.bin`/`l_fixnv2_a.bin` tetap
+  memakai akhiran `_a`.
+- `custom_exec_no_verify_65015f08.bin` adalah payload untuk tool (bukan partisi) dan
+  `partition_1793459407.xml` adalah tabel partisi.
 
 | Aset | Ukuran | Partisi tujuan |
 |---|---|---|
@@ -203,19 +209,27 @@ Partisi bootloader (hanya kalau perlu) memiliki alamat `uboot` tanpa slot:
 Partisi modem/NV hanya untuk pemulihan HP ini sendiri (lihat peringatan di README):
 
 ```bash
-./spd_dump --wait 300 $Q w l_modem     ../l_modem_a.bin  reset
-./spd_dump --wait 300 $Q w l_ldsp      ../l_ldsp_a.bin   reset
-./spd_dump --wait 300 $Q w l_gdsp      ../l_gdsp_a.bin   reset
-./spd_dump --wait 300 $Q w l_agdsp     ../l_agdsp_a.bin  reset
-./spd_dump --wait 300 $Q w prodnv      ../prodnv.bin     reset
-./spd_dump --wait 300 $Q w persist     ../persist.bin    reset
+./spd_dump --wait 300 $Q w l_modem_a     ../l_modem_a.bin     reset
+./spd_dump --wait 300 $Q w l_ldsp_a      ../l_ldsp_a.bin      reset
+./spd_dump --wait 300 $Q w l_gdsp_a      ../l_gdsp_a.bin      reset
+./spd_dump --wait 300 $Q w l_agdsp_a     ../l_agdsp_a.bin     reset
+./spd_dump --wait 300 $Q w l_deltanv_a   ../l_deltanv_a.bin   reset
+./spd_dump --wait 300 $Q w l_fixnv1_a    ../l_fixnv1_a.bin    reset
+./spd_dump --wait 300 $Q w l_fixnv2_a    ../l_fixnv2_a.bin    reset
+./spd_dump --wait 300 $Q w l_runtimenv1  ../l_runtimenv1.bin  reset
+./spd_dump --wait 300 $Q w l_runtimenv2  ../l_runtimenv2.bin  reset
+./spd_dump --wait 300 $Q w prodnv        ../prodnv.bin        reset
+./spd_dump --wait 300 $Q w persist       ../persist.bin       reset
 ```
 
 ### 4.4 Kalau hanya butuh satu partisi logis
 
-`super.bin` menimpa seluruh sistem. Untuk mengganti satu partisi logis saja, tulis image hasil
-`lpunpack` ke dalam `super` lewat recovery/fastbootd, atau tulis ulang `super.bin` utuh. Di
-HP ini `fastboot flash` tidak bisa menulis, jadi jalur yang pasti adalah `super.bin`.
+`super.bin` menimpa seluruh sistem sekaligus, dan itu jalur yang dipakai di sini. Tujuh image
+hasil `lpunpack` di rilis ini berguna untuk **memeriksa** isi partisi logis atau menyusun
+ulang `super` sendiri; menulisnya langsung ke HP ini hanya bisa lewat Lineage Recovery
+(`sparse_flash.py` di rilis LineageOS menulis ke dalam `super` dari dalam recovery), karena
+`fastboot flash` tidak bisa menulis di unit ini dan mode download hanya mengenal partisi
+fisik `super`. Untuk pemulihan, tulis `super.bin` utuh.
 
 ## 5. Verifikasi setelah flash
 
