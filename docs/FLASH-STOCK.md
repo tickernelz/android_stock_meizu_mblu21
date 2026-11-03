@@ -23,7 +23,7 @@ copies of commands that worked — not guesses.
 | `uboot_a.bin` | 3145728 | `uboot` | a |
 | `misc.bin`, `miscdata.bin` | 1048576 each | `misc`, `miscdata` | — |
 | `persist.bin`, `prodnv.bin`, `l_*.bin`, `pm_sys_a.bin`, `trustos_a.bin`, `sml_a.bin`, `teecfg_a.bin`, `logo.bin`, `fbootlogo.bin`, `metadata.bin`, `pgpt.bin`, `calinv.bin`, `common_rs*_a.bin`, `hypervsior_a.bin`, `avbmeta_rs_a.bin`, `sysdumpdb.bin`, `l_deltanv_a.bin`, `l_fixnv1_a.bin`, `l_fixnv2_a.bin`, `l_runtimenv1.bin`, `l_runtimenv2.bin` | — | remaining stock partitions | — |
-| `super.bin.part0/1/2` | 2 GiB, 2 GiB, 1177 MiB | `super.bin` split so each asset stays under GitHub's 2 GiB limit | — |
+| `super.bin.part0/1/2` | 2000 MiB, 2000 MiB, 1300 MiB | `super.bin` split so each asset stays under GitHub's 2 GiB limit | — |
 | `tools-windows.zip` | — | `spd_dump.exe`, `gen_spl-unlock.exe`, `chsize.exe`, FDL loaders, Unisoc driver | — |
 | `tools-linux.zip` | — | the same tools built for Linux, plus the udev rule | — |
 | `SHA256SUMS-full_dump.txt` | — | hashes of the **unsplit** dumps, computed on the phone dump | — |
@@ -107,7 +107,7 @@ The reliable recipe is one write per command, for example:
 `super` is 5.5 GB and needs its own session with a long wait:
 
 ```bash
-cat ../super.bin.part0 ../super.bin.part1 ../super.bin.part2 > ../super.bin
+cat super.bin.part0 super.bin.part1 super.bin.part2 > super.bin
 sha256sum -c SHA256SUMS-full_dump.txt --ignore-missing
 ./spd_dump --wait 900 $Q w super ../super.bin reset
 ```
