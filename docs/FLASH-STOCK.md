@@ -45,7 +45,7 @@ Slot B tidak pernah di-dump: HP ini boot dari slot `a` dan slot `b` kosong pada 
 ### Linux
 
 ```bash
-sudo dnf install -y android-tools libusb1 unzip        # Debian/Ubuntu: android-sdk-platform-tools-common libusb-1.0-0
+sudo dnf install -y android-tools libusb1 unzip usbutils   # Debian/Ubuntu: android-tools-adb libusb-1.0-0 unzip usbutils
 unzip tools-linux.zip && cd tools-linux
 chmod +x spd_dump gen_spl-unlock chsize
 
