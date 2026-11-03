@@ -1,0 +1,42 @@
+{
+ "device": {
+  "model": "Mblu 21",
+  "board": "ums9230_6h10",
+  "soc": "Unisoc UMS9230 / T606",
+  "storage": "UFS",
+  "android": "14",
+  "build": "U01005 / 1745906188",
+  "security_patch": "2025-04-05",
+  "treble": true,
+  "slot": "A/B"
+ },
+ "full_dump": {
+  "path": "C:\\Users\\Public\\mblu21-backup\\full_dump",
+  "files": 44,
+  "bytes": 6070000000,
+  "partitions": "all_lite (no cache/blackbox/userdata)"
+ },
+ "logical": {
+  "system_a": 660400000,
+  "vendor_a": 765500000,
+  "product_a": 1772100000,
+  "system_ext_a": 427300000,
+  "odm_a": 13100000,
+  "vendor_dlkm_a": 9000000,
+  "system_dlkm_a": 300000
+ },
+ "extracted": {
+  "path": "/home/zhafron/re/mblu21/extracted",
+  "files": 6985
+ },
+ "kernel_modules": {
+  "vendor_dlkm": 113,
+  "system_dlkm": 2
+ },
+ "avb": {
+  "vbmeta_flags": 0,
+  "locked": true,
+  "verifiedbootstate": "green"
+ },
+ "next": "unlock bootloader via CVE-2022-38694, then flash LineageOS GSI"
+}
