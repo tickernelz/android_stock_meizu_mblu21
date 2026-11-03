@@ -1,32 +1,32 @@
-# Rollback: kembali ke stok dari LineageOS atau custom ROM
+# Rollback: back to stock from LineageOS or a custom ROM
 
-> **MENGHAPUS DATA.** Rollback mengembalikan perangkat lunak ke pabrik, bukan berkas pribadi.
-> Selamatkan data dulu (`adb pull /sdcard`), lalu jalankan dengan keputusan pemilik HP.
+> **ERASES DATA.** A rollback restores the factory software, not personal files.
+> Save your data first (`adb pull /sdcard`), then run it with the phone owner's decision.
 
-Tata letak folder sama dengan [FLASH-STOCK.md §2](FLASH-STOCK.md#2-ambil-rilis-susun-folder-verifikasi):
-folder image berisi subfolder `tools`.
+The folder layout is the same as in [FLASH-STOCK.md §2](FLASH-STOCK.md#2-download-the-release-lay-out-the-folder-verify):
+the image folder contains a `tools` subfolder.
 
-## 1. Apa yang berubah saat memasang LineageOS 24.0
+## 1. What changes when LineageOS 24.0 is installed
 
-Menurut catatan rilis LineageOS 24.0 untuk HP ini, yang ditulis saat install adalah:
+According to the LineageOS 24.0 release notes for this phone, the install writes:
 
-| Partisi | Ditulis saat install | Kembali ke stok butuh |
+| Partition | Written at install | Back to stock needs |
 |---|---|---|
-| `vendor_boot_a` | `vendor_boot.img` LineageOS (berisi Lineage Recovery) | `vendor_boot_a.bin` |
-| `super` | `super.img` sparse (partisi logis: system, system_ext, product, vendor, odm, vendor_dlkm, system_dlkm) | `super.bin` |
-| `init_boot_a` | `init_boot.img` LineageOS (atau image hasil patch root) | `init_boot_a.bin` |
-| `boot`, `dtbo`, `vbmeta*` | tidak diubah saat install biasa | tidak perlu, kecuali pernah ditimpa |
+| `vendor_boot_a` | LineageOS `vendor_boot.img` (carries Lineage Recovery) | `vendor_boot_a.bin` |
+| `super` | sparse `super.img` (logical partitions: system, system_ext, product, vendor, odm, vendor_dlkm, system_dlkm) | `super.bin` |
+| `init_boot_a` | LineageOS `init_boot.img` (or a root-patched image) | `init_boot_a.bin` |
+| `boot`, `dtbo`, `vbmeta*` | not changed by a normal install | not needed, unless they were overwritten |
 
-## 2. Langkah
+## 2. Steps
 
-Semua perintah dijalankan dari folder tool, dengan HP di mode download
-([FLASH-STOCK.md §3](FLASH-STOCK.md#3-masuk-mode-download-brom)) sebelum **setiap** baris.
+Every command runs from the tool folder, with the phone in download mode
+([FLASH-STOCK.md §3](FLASH-STOCK.md#3-enter-download-mode-brom)) before **every** line.
 
 ```bash
 cd ~/mblu21-stock/tools
 Q="exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 exec"
 
-# 1. sistem: super stok (5,56 GB) — ulangi sampai "Write Part Done"
+# 1. system: stock super (5.56 GB); repeat until "Write Part Done"
 ./spd_dump --wait 300 $Q timeout 600000 w super ../super.bin reset
 
 # 2. boot chain
@@ -35,49 +35,49 @@ Q="exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 ex
 ./spd_dump --wait 300 $Q w boot_a        ../boot_a.bin        reset
 ./spd_dump --wait 300 $Q w dtbo_a        ../dtbo_a.bin        reset
 
-# 3. AVB + blok kendali boot
+# 3. AVB + boot-control block
 ./spd_dump --wait 300 $Q w vbmeta_a ../vbmeta_a.bin reset
 ./spd_dump --wait 300 $Q w misc     ../misc.bin     reset
 ```
 
-Windows: sama, tanpa `./`, dengan `set Q=...` + `%Q%` dan `..\` sebagai ganti `../`.
+Windows: the same, without `./`, with `set Q=...` + `%Q%` and `..\` instead of `../`.
 
-Catatan bukti: penulisan partisi stok seperti di atas sudah diulang beberapa kali pada HP ini
-dan HP selalu boot Android 14 lagi sesudahnya.
+Evidence note: writing the stock partitions as above has been repeated several times on this
+phone, and it booted Android 14 again every time.
 
-## 3. Menghapus data dari sistem sebelumnya
+## 3. Wiping the data of the previous system
 
-Tiga partisi di atas cukup untuk firmware, tetapi `/data` masih terenkripsi dengan kunci
-Android 17. Jalur yang dipakai: **factory reset dari stock recovery**, setelah
-`vendor_boot_a` kembali stok.
+The three partitions above are enough for the firmware, but `/data` is still encrypted with
+the Android 17 key. The path used: **factory reset from stock recovery**, after
+`vendor_boot_a` is stock again.
 
-1. Kalau Android stok belum bisa boot karena `/data` berasal dari Android 17, HP berhenti di
-   layar logo atau meminta reset — itu tanda data harus diformat.
-2. Masuk stock recovery lewat `adb reboot recovery` (adb di recovery terdeteksi sebagai
-   perangkat `1782:d001`). Kombinasi tombol hardware untuk recovery pabrik belum diukur di
-   panduan ini, jadi jangan mengandalkannya.
-3. Pilih **Factory reset / Wipe data** → konfirmasi → **Reboot system**.
-4. Tunggu boot pertama 2–4 menit.
+1. If stock Android cannot boot yet because `/data` comes from Android 17, the phone stops at
+   the logo screen or asks for a reset; that is the sign the data must be formatted.
+2. Enter stock recovery with `adb reboot recovery` (adb in recovery shows up as device
+   `1782:d001`). The hardware key combination for factory recovery has not been measured for
+   this guide, so do not rely on it.
+3. Choose **Factory reset / Wipe data** → confirm → **Reboot system**.
+4. Wait 2–4 minutes for the first boot.
 
-Stock recovery di HP ini terbukti bisa boot (muncul sebagai perangkat `adb` `1782:d001`).
+Stock recovery on this phone is proven to boot (it appears as `adb` device `1782:d001`).
 
-**Jangan pakai `spd_dump e userdata` untuk ini.** Perintah itu bukan menghapus `/data`: tool
-menulis blok kendali `boot-recovery / --wipe_data` ke `misc` lalu **mengosongkan partisi
-`persist`** (`common.c:1144-1154`), sehingga kalibrasi khas perangkat hilang dan HP diarahkan
-ke recovery — bukan `/data` yang dibersihkan. Kalau `persist` sudah telanjur kosong, tulis
-kembali `persist.bin` dari rilis ini (partisi ini ditulis mentah, byte-per-byte).
+**Do not use `spd_dump e userdata` for this.** That command does not wipe `/data`: the tool
+writes a `boot-recovery / --wipe_data` control block to `misc` and then **erases the
+`persist` partition** (`common.c:1144-1154`), so device-specific calibration is lost and the
+phone is sent to recovery; `/data` is not what gets cleaned. If `persist` has already been
+erased, write `persist.bin` from this release back (this partition is written raw, byte for byte).
 
-## 4. Verifikasi
+## 4. Verification
 
 ```bash
-adb reboot                      # keluar dulu dari recovery
+adb reboot                      # leave recovery first
 adb shell getprop ro.build.version.release   # 14
 adb shell getprop ro.build.display.id        # U01005 ...
 adb shell getprop sys.boot_completed         # 1
 ```
 
-Setelah stok tidak ada root, jadi partisi dibandingkan dengan membacanya kembali lewat mode
-download (bukan `adb shell su`):
+After a stock restore there is no root, so partitions are compared by reading them back
+through download mode (not `adb shell su`):
 
 ```bash
 mkdir -p ~/mblu21-stock/readback
@@ -87,15 +87,15 @@ Q="exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 ex
 cd ../readback && sha256sum boot_a.bin init_boot_a.bin vendor_boot_a.bin dtbo_a.bin vbmeta_a.bin
 ```
 
-Kelima nilai itu harus sama dengan baris berkas yang sama di `SHA256SUMS-full_dump.txt`.
-`super` tidak dibandingkan per partisi logis; bandingkan dengan cara membaca ulang `super`
-(`r super`, 5,56 GB) lalu mencocokkan hash-nya.
+All five values must match the line for the same file in `SHA256SUMS-full_dump.txt`.
+`super` is not compared per logical partition; compare it by reading `super` back
+(`r super`, 5.56 GB) and matching its hash.
 
-## 5. Kalau masih gagal boot
+## 5. If it still does not boot
 
-1. Tulis ulang **semua** 42 image partisi dari rilis, bukan hanya tiga di atas — perbedaan di
-   modem/NV, `splloader`/`uboot`, atau rantai `vbmeta` juga menahan boot.
-2. Periksa `vbmeta_a` dan rantai `vbmeta_*`: HP ini menolak `vbmeta` apa pun yang bukan dari
-   Meizu dan berhenti di logo.
-3. HP yang tidak mau boot bukan brick: BootROM selalu bisa dijangkau lewat mode download
-   (Volume Up + colok USB), jadi rilis ini selalu bisa ditulis ulang.
+1. Rewrite **all** 42 partition images from the release, not only the three above;
+   differences in modem/NV, `splloader`/`uboot`, or the `vbmeta` chain also block booting.
+2. Check `vbmeta_a` and the `vbmeta_*` chain: this phone rejects any `vbmeta` that is not
+   from Meizu and stops at the logo.
+3. A phone that will not boot is not bricked: the BootROM is always reachable through
+   download mode (Volume Up + plug in USB), so this release can always be written again.

@@ -1,61 +1,61 @@
-# Pulih total ke firmware stok — Meizu mBlu 21 (M416H)
+# Full restore to stock firmware — Meizu mBlu 21 (M416H)
 
-Semua image di rilis ini dibaca **dari HP itu sendiri** lewat Unisoc BootROM (mode download),
-jadi menulisnya kembali mengembalikan HP ke kondisi saat dikirim pabrik.
+Every image in this release was read **from the phone itself** through the Unisoc BootROM
+(download mode), so writing them back returns the phone to the state it left the factory in.
 
-Baca seluruh halaman sekali sebelum menyentuh HP. Satu sesi mode download hanya untuk satu
-penulisan: setiap kali `spd_dump` selesai, HP reboot dan koneksinya putus, jadi HP harus
-dimasukkan lagi ke mode download untuk partisi berikutnya.
+Read the whole page once before touching the phone. One download-mode session covers one
+write: each time `spd_dump` finishes, the phone reboots and the connection drops, so the phone
+has to be put back into download mode for the next partition.
 
-> **MENGHAPUS DATA.** Menulis `super`, `misc`, atau menghapus data mengakhiri isi Android yang
-> sekarang. Berkas pribadi tidak ada di rilis ini dan tidak bisa dipulihkan dari sini. Jangan
-> jalankan satu pun perintah di bawah tanpa keputusan pemilik HP.
+> **ERASES DATA.** Writing `super`, `misc`, or wiping data ends the current Android
+> installation. Personal files are not in this release and cannot be recovered from here. Do
+> not run any command below without the phone owner's decision.
 
-## 0. Isi rilis dan nama partisi
+## 0. Release contents and partition names
 
-Nama berkas = nama partisi di `/dev/block/by-name`. `boot_a.bin` ditulis ke partisi
-`boot_a`, `vbmeta_system_a.bin` ke `vbmeta_system_a`, `super.bin` ke `super`, dan
-seterusnya, dengan pengecualian:
+File name = partition name in `/dev/block/by-name`. `boot_a.bin` is written to partition
+`boot_a`, `vbmeta_system_a.bin` to `vbmeta_system_a`, `super.bin` to `super`, and so on,
+with these exceptions:
 
-| Berkas | Nama yang dipakai di `spd_dump` | Catatan |
+| File | Name used in `spd_dump` | Note |
 |---|---|---|
-| `uboot_a.bin` | `uboot` | tool memetakan sendiri, bukan `uboot_a` |
-| `l_runtimenv1.bin`, `l_runtimenv2.bin` | `l_runtimenv1`, `l_runtimenv2` | tanpa akhiran slot |
-| `l_fixnv1_a.bin`, `l_fixnv2_a.bin` | `l_fixnv1_a`, `l_fixnv2_a` | wajib akhiran `_a` |
-| `custom_exec_no_verify_65015f08.bin` | — | payload untuk tool, bukan partisi |
-| `partition_1793459407.xml` | — | tabel partisi dari HP |
+| `uboot_a.bin` | `uboot` | the tool maps it itself, not `uboot_a` |
+| `l_runtimenv1.bin`, `l_runtimenv2.bin` | `l_runtimenv1`, `l_runtimenv2` | no slot suffix |
+| `l_fixnv1_a.bin`, `l_fixnv2_a.bin` | `l_fixnv1_a`, `l_fixnv2_a` | the `_a` suffix is required |
+| `custom_exec_no_verify_65015f08.bin` | — | payload for the tool, not a partition |
+| `partition_1793459407.xml` | — | partition table from the phone |
 
-**Dua pasang partisi NV berisi byte yang sama.** Di dump ini `l_fixnv1_a.bin` identik
-byte-per-byte dengan `l_fixnv2_a.bin`, dan `l_runtimenv1.bin` identik dengan
-`l_runtimenv2.bin`. Itu bukan artefak pemotongan: kedua berkas berukuran penuh 2 MiB dan bukan
-salinan tergeser satu sama lain (dicek dengan `cmp` dan perbandingan `tail`/`head`), dan tabel
-partisi HP (`partitions/partition_1793459407.xml`) memang mencantumkan keduanya sebagai partisi
-terpisah. Yang bisa dikatakan dari dump ini: kedua partisi di HP ini berisi data yang sama.
+**Two pairs of NV partitions hold the same bytes.** In this dump `l_fixnv1_a.bin` is
+byte-for-byte identical to `l_fixnv2_a.bin`, and `l_runtimenv1.bin` is identical to
+`l_runtimenv2.bin`. That is not a truncation artefact: both files are the full 2 MiB and are
+not shifted copies of each other (checked with `cmp` and a `tail`/`head` comparison), and the
+phone's partition table (`partitions/partition_1793459407.xml`) does list them as separate
+partitions. What this dump shows: both partitions on this phone hold the same data.
 
-**Partisi NV tidak bisa dipulihkan dengan `w` dari rilis ini** — lihat §4.4.
+**NV partitions cannot be restored with `w` from this release** — see §4.4.
 
-Rincian isi rilis:
+Release contents in detail:
 
-| Aset | Ukuran (byte) | Partisi tujuan |
+| Asset | Size (bytes) | Target partition |
 |---|---|---|
-| `super.bin` (dari `super.bin.part0..2`) | 5.557.452.800 | `super` |
-| `boot_a.bin` | 67.108.864 | `boot_a` |
-| `vendor_boot_a.bin` | 104.857.600 | `vendor_boot_a` |
-| `init_boot_a.bin` | 8.388.608 | `init_boot_a` |
-| `dtbo_a.bin` / `dtb_a.bin` | 8.388.608 | `dtbo_a` / `dtb_a` |
-| `vbmeta_a.bin` dan lima `vbmeta_*_a.bin` | 1.048.576 | rantai AVB |
-| `misc.bin`, `miscdata.bin` | 1.048.576 | `misc`, `miscdata` |
-| `metadata.bin` | 67.108.864 | `metadata` |
-| `persist.bin` | 2.097.152 | `persist` |
-| `prodnv.bin` | 67.108.864 | `prodnv` |
-| `splloader.bin`, `uboot_a.bin` | 262.144 / 3.145.728 | bootloader |
-| `system_a.img`, `vendor_a.img`, `product_a.img`, `system_ext_a.img`, `odm_a.img`, `vendor_dlkm_a.img`, `system_dlkm_a.img` | hasil `lpunpack` | partisi **logis** di dalam `super` |
-| sisanya (`logo.bin`, `fbootlogo.bin`, `calinv.bin`, `pm_sys_a.bin`, `sml_a.bin`, `trustos_a.bin`, `teecfg_a.bin`, `common_rs*_a.bin`, `hypervsior_a.bin`, `avbmeta_rs_a.bin`, `sysdumpdb.bin`, `pgpt.bin`, `uboot_log.bin`, `l_*.bin`) | beragam | nama sama tanpa `.bin` |
+| `super.bin` (from `super.bin.part0..2`) | 5,557,452,800 | `super` |
+| `boot_a.bin` | 67,108,864 | `boot_a` |
+| `vendor_boot_a.bin` | 104,857,600 | `vendor_boot_a` |
+| `init_boot_a.bin` | 8,388,608 | `init_boot_a` |
+| `dtbo_a.bin` / `dtb_a.bin` | 8,388,608 | `dtbo_a` / `dtb_a` |
+| `vbmeta_a.bin` and five `vbmeta_*_a.bin` | 1,048,576 | AVB chain |
+| `misc.bin`, `miscdata.bin` | 1,048,576 | `misc`, `miscdata` |
+| `metadata.bin` | 67,108,864 | `metadata` |
+| `persist.bin` | 2,097,152 | `persist` |
+| `prodnv.bin` | 67,108,864 | `prodnv` |
+| `splloader.bin`, `uboot_a.bin` | 262,144 / 3,145,728 | bootloader |
+| `system_a.img`, `vendor_a.img`, `product_a.img`, `system_ext_a.img`, `odm_a.img`, `vendor_dlkm_a.img`, `system_dlkm_a.img` | `lpunpack` output | **logical** partitions inside `super` |
+| the rest (`logo.bin`, `fbootlogo.bin`, `calinv.bin`, `pm_sys_a.bin`, `sml_a.bin`, `trustos_a.bin`, `teecfg_a.bin`, `common_rs*_a.bin`, `hypervsior_a.bin`, `avbmeta_rs_a.bin`, `sysdumpdb.bin`, `pgpt.bin`, `uboot_log.bin`, `l_*.bin`) | various | same name without `.bin` |
 
-Slot B tidak pernah di-dump: HP ini boot dari slot `a` dan slot `b` kosong pada saat dump
-(`*_b.img` berukuran 0). Memulihkan slot `a` sudah cukup.
+Slot B was never dumped: this phone boots from slot `a`, and slot `b` was empty at dump time
+(`*_b.img` is 0 bytes). Restoring slot `a` is enough.
 
-## 1. Prasyarat host
+## 1. Host prerequisites
 
 ### Linux
 
@@ -63,8 +63,8 @@ Slot B tidak pernah di-dump: HP ini boot dari slot `a` dan slot `b` kosong pada 
 sudo dnf install -y android-tools libusb1 unzip usbutils   # Debian/Ubuntu: android-tools-adb libusb-1.0-0 unzip usbutils
 ```
 
-Aturan udev memberi akses USB `1782:4d00` (mode download Unisoc) ke user yang sedang login,
-jadi `spd_dump` tidak perlu dijalankan sebagai root:
+The udev rule gives the logged-in user access to USB `1782:4d00` (Unisoc download mode), so
+`spd_dump` does not need to run as root:
 
 ```bash
 echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="1782", ATTR{idProduct}=="4d00", TAG+="uaccess"' \
@@ -72,26 +72,26 @@ echo 'SUBSYSTEM=="usb", ATTR{idVendor}=="1782", ATTR{idProduct}=="4d00", TAG+="u
 sudo udevadm control --reload
 ```
 
-Aturan yang sama ada di dalam `tools-linux.zip` sebagai `51-unisoc-download.rules`.
+The same rule ships inside `tools-linux.zip` as `51-unisoc-download.rules`.
 
 ### Windows
 
-1. Pasang driver Unisoc dari folder hasil ekstrak §2: jalankan
-   `tools\SPD_Driver\Win10\DPInst64.exe` sebagai administrator. Zip itu hanya memuat folder
-   driver `Win10` — itulah yang dipakai Windows 10 dan 11.
-2. Pasang platform-tools Google kalau ingin memakai `adb` untuk verifikasi.
-3. Semua perintah di halaman ini dijalankan dari `C:\mblu21\stock\tools`, tanpa awalan
-   `./`.
+1. Install the Unisoc driver from the folder extracted in §2: run
+   `tools\SPD_Driver\Win10\DPInst64.exe` as administrator. The zip only carries the `Win10`
+   driver folder; that is the one Windows 10 and 11 use.
+2. Install Google platform-tools if you want to use `adb` for verification.
+3. Every command on this page runs from `C:\mblu21\stock\tools`, without the `./`
+   prefix.
 
-## 2. Ambil rilis, susun folder, verifikasi
+## 2. Download the release, lay out the folder, verify
 
-Pakai satu tata letak untuk semua perintah di halaman ini dan di `ROLLBACK.md`: folder image
-berisi subfolder `tools`.
+Use one layout for every command on this page and in `ROLLBACK.md`: the image folder
+contains a `tools` subfolder.
 
 ```
 ~/mblu21-stock/
-├── super.bin  boot_a.bin  vbmeta_a.bin  ...      (aset rilis)
-└── tools/                                        (isi tools-linux.zip / tools-windows.zip)
+├── super.bin  boot_a.bin  vbmeta_a.bin  ...      (release assets)
+└── tools/                                        (contents of tools-linux.zip / tools-windows.zip)
 ```
 
 Linux:
@@ -102,9 +102,9 @@ gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_mei
 cat super.bin.part0 super.bin.part1 super.bin.part2 > super.bin
 unzip -oq tools-linux.zip && { [ -d tools ] || mv tools-linux tools; }
 chmod +x tools/spd_dump tools/gen_spl-unlock tools/chsize
-./tools/spd_dump -h | head -1                # harus mencetak "branch:HEAD, sha1:f2fc7792…"
-sha256sum -c SHA256SUMS-full_dump.txt        # 44 baris (42 image partisi + payload tool + tabel partisi), semuanya "OK"
-sha256sum -c SHA256SUMS-logical.txt          # 7 baris, semuanya "OK"
+./tools/spd_dump -h | head -1                # must print "branch:HEAD, sha1:f2fc7792…"
+sha256sum -c SHA256SUMS-full_dump.txt        # 44 lines (42 partition images + tool payload + partition table), all "OK"
+sha256sum -c SHA256SUMS-logical.txt          # 7 lines, all "OK"
 ```
 
 Windows (PowerShell):
@@ -115,60 +115,63 @@ gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_mei
 cmd /c copy /b super.bin.part0+super.bin.part1+super.bin.part2 super.bin
 Expand-Archive tools-windows.zip -DestinationPath . -Force
 if (-not (Test-Path tools)) { Rename-Item tools-windows tools }
-.\tools\spd_dump.exe -h | Select-Object -First 1   # harus mencetak "branch:HEAD, sha1:…"
-Get-FileHash .\boot_a.bin -Algorithm SHA256      # bandingkan dengan SHA256SUMS-full_dump.txt
+.\tools\spd_dump.exe -h | Select-Object -First 1   # must print "branch:HEAD, sha1:…"
+Get-FileHash .\boot_a.bin -Algorithm SHA256      # compare with SHA256SUMS-full_dump.txt
 ```
 
-Kedua zip membawa folder teratas (`tools-linux/` dan `tools-windows/`), jadi ekstrak ke folder
-kerja lalu ganti namanya. `unzip -d tools` menghasilkan `tools/tools-linux/`, dan semua
-perintah sesudahnya gagal karena `spd_dump` tidak ada di tempat yang disebut panduan.
+Both zips carry a top-level folder (`tools-linux/` and `tools-windows/`), so extract into the
+working folder and then rename it. `unzip -d tools` produces `tools/tools-linux/`, and every
+later command fails because `spd_dump` is not where the guide says it is.
 
-Setelah ketiga bagian `super` digabung, hash-nya harus
-`0b263da0a621f9544a462dd8486a5e0869a339bd6e509d15654cc8d64d9f1e97` (tercatat di
-`SHA256SUMS-full_dump.txt`). Kalau berbeda, jangan lanjut: unduh ulang bagian yang rusak.
+After the three `super` parts are joined, its hash must be
+`0b263da0a621f9544a462dd8486a5e0869a339bd6e509d15654cc8d64d9f1e97` (listed in
+`SHA256SUMS-full_dump.txt`). If it differs, stop: download the damaged part again.
 
-> **MENGHAPUS DATA.** Mulai dari langkah ini setiap perintah menyentuh HP.
+> **ERASES DATA.** From this step on, every command touches the phone.
 
-## 3. Masuk mode download (BROM)
+## 3. Enter download mode (BROM)
 
-1. Cabut kabel USB, matikan HP (tahan **Power** ±20 detik sampai layar tetap gelap).
-2. Tahan **Volume Up** dan jangan dilepas.
-3. Colok kabel USB sambil tetap menahan **Volume Up**.
-4. Tahan ±10 detik, lalu lepas. Layar tetap hitam — itu benar.
+1. Unplug the USB cable and power the phone off (hold **Power** about 20 seconds until the
+   screen stays dark).
+2. Hold **Volume Up** and do not let go.
+3. Plug in the USB cable while still holding **Volume Up**.
+4. Hold about 10 seconds, then release. The screen stays black; that is correct.
 
-Cek dari host:
+Check from the host:
 
 ```bash
-lsusb | grep 1782          # harus muncul: 1782:4d00
+lsusb | grep 1782          # must show: 1782:4d00
 ```
 
-Windows: **Device Manager → Ports** harus menampilkan **`SPD U2S Diag (COM<n>)`**. Kalau
-muncul sebagai *unknown device*, driver Unisoc (§1) belum terpasang.
+Windows: **Device Manager → Ports** must show **`SPD U2S Diag (COM<n>)`**. If it shows up as
+an *unknown device*, the Unisoc driver (§1) is not installed yet.
 
-Pada unit ini **Volume Up** adalah tombol mode download; **Volume Down hanya sampai layar
-pengisian baterai** (diukur 2026-11-02). Catatan terpisah: di dalam recovery, tombol Volume
-Down fisik memicu reset PMIC — itu perilaku recovery, bukan mode download.
+On this unit **Volume Up** is the download-mode button; **Volume Down only reaches the
+battery-charging screen** (measured 2026-11-02). A separate note: inside recovery, the
+physical Volume Down button triggers a PMIC reset; that is recovery behaviour, not download
+mode.
 
-## 4. Menulis firmware
+## 4. Writing the firmware
 
-Bentuk perintahnya (dari dokumentasi tool):
+Command form (from the tool's documentation):
 
 ```
-spd_dump [OPSI] [PERINTAH] [PERINTAH KELUAR]
+spd_dump [OPTIONS] [COMMANDS] [EXIT COMMANDS]
 ```
 
-- `--wait 300` — menunggu sampai 300 detik HP muncul di USB (**bukan** batas waktu penulisan).
-- `exec_addr 0x65015f08` — alamat CVE-2022-38694 yang dipakai unit ini untuk melewati
-  pemeriksaan tanda tangan BROM.
-- `fdl fdl1-dl.bin 0x65000800` dan `fdl fdl2-dl.bin 0x9efffe00` — loader FDL1/FDL2 dengan
-  alamat yang cocok untuk UMS9230 ini.
-- `exec` — menjalankan FDL2.
-- `timeout 600000` — batas waktu satu perintah baca/tulis dalam milidetik (opsional; pakai
-  untuk `super`).
-- `w` / `write_part` — dua ejaan untuk perintah yang sama: tulis berkas ke satu partisi.
-- `reset` — perintah keluar: HP reboot dan koneksi download putus.
+- `--wait 300`: waits up to 300 seconds for the phone to appear on USB (**not** a write
+  timeout).
+- `exec_addr 0x65015f08`: the CVE-2022-38694 address this unit uses to bypass the BROM
+  signature check.
+- `fdl fdl1-dl.bin 0x65000800` and `fdl fdl2-dl.bin 0x9efffe00`: the FDL1/FDL2 loaders with
+  the addresses that match this UMS9230.
+- `exec`: runs FDL2.
+- `timeout 600000`: time limit for one read/write command, in milliseconds (optional; use it
+  for `super`).
+- `w` / `write_part`: two spellings of the same command: write a file to one partition.
+- `reset`: exit command; the phone reboots and the download connection drops.
 
-### 4.1 Satu partisi per sesi (cara yang dipakai saat root)
+### 4.1 One partition per session (the method used while rooting)
 
 Linux:
 
@@ -186,27 +189,27 @@ spd_dump --wait 300 exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 ^
     fdl fdl2-dl.bin 0x9efffe00 exec w boot_a ..\boot_a.bin reset
 ```
 
-(`^` adalah penyambung baris di `cmd.exe`.)
+(`^` is the line continuation in `cmd.exe`.)
 
-Berhasil bila output berisi `Write Part Done`. Penulisan berjalan per blok: kalau koneksi
-putus di tengah (`libusb_open_device failed`, `LIBUSB_ERROR_IO`, `find port failed`),
-partisi bisa tertinggal **sebagian** tertulis. Masukkan lagi HP ke mode download (§3) dan
-**ulangi perintah yang sama sampai `Write Part Done` muncul**.
+It succeeded when the output contains `Write Part Done`. The write runs block by block: if the
+connection drops mid-way (`libusb_open_device failed`, `LIBUSB_ERROR_IO`, `find port failed`),
+the partition can be left **partly** written. Put the phone back into download mode (§3) and
+**repeat the same command until `Write Part Done` appears**.
 
-### 4.2 Urutan yang dipakai saat restore
+### 4.2 Order used for a restore
 
-1. `super` — 5,56 GB, sediakan waktu; pakai `timeout 600000`.
+1. `super`: 5.56 GB, allow time; use `timeout 600000`.
 2. `boot_a`, `init_boot_a`, `vendor_boot_a`, `dtbo_a`, `dtb_a`.
-3. Rantai AVB: `vbmeta_a`, `vbmeta_system_a`, `vbmeta_system_ext_a`, `vbmeta_vendor_a`,
+3. AVB chain: `vbmeta_a`, `vbmeta_system_a`, `vbmeta_system_ext_a`, `vbmeta_vendor_a`,
    `vbmeta_product_a`, `vbmeta_odm_a`.
-4. `misc` — menghapus blok kendali boot; isi `boot-recovery` yang tertinggal membuat HP
-   masuk recovery, bukan Android.
-5. `splloader`, `uboot` — hanya kalau bootloader ikut diubah (mis. sesudah unlock).
-6. Partisi lain yang berubah (modem/DSP/NV) sesuai kebutuhan — baca §4.4 dulu.
+4. `misc`: clears the boot-control block; a leftover `boot-recovery` entry sends the phone
+   into recovery instead of Android.
+5. `splloader`, `uboot`: only if the bootloader was changed too (e.g. after an unlock).
+6. Other partitions that changed (modem/DSP/NV) as needed; read §4.4 first.
 
-### 4.3 Perintah per partisi
+### 4.3 Per-partition commands
 
-Linux (HP dimasukkan ulang ke mode download di antara baris):
+Linux (put the phone back into download mode between lines):
 
 ```bash
 cd ~/mblu21-stock/tools
@@ -227,8 +230,8 @@ Q="exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 ex
 ./spd_dump --wait 300 $Q w misc          ../misc.bin          reset
 ```
 
-Windows — satu berkas `flash-stock.cmd` di `C:\mblu21\stock\tools`, jalankan per baris
-(`set Q=...` dulu, lalu satu perintah per HP masuk mode download):
+Windows: one `flash-stock.cmd` file in `C:\mblu21\stock\tools`, run line by line
+(`set Q=...` first, then one command each time the phone enters download mode):
 
 ```bat
 cd /d C:\mblu21\stock\tools
@@ -249,7 +252,7 @@ spd_dump --wait 300 %Q% w vbmeta_odm_a ..\vbmeta_odm_a.bin reset
 spd_dump --wait 300 %Q% w misc ..\misc.bin reset
 ```
 
-Bootloader (hanya kalau perlu; nama partisi `uboot`, bukan `uboot_a`):
+Bootloader (only if needed; the partition name is `uboot`, not `uboot_a`):
 
 ```bash
 ./spd_dump --wait 300 $Q w splloader ../splloader.bin reset
@@ -261,39 +264,39 @@ spd_dump --wait 300 %Q% w splloader ..\splloader.bin reset
 spd_dump --wait 300 %Q% w uboot ..\uboot_a.bin reset
 ```
 
-### 4.4 Partisi NV: apa yang sebenarnya dilakukan `w`
+### 4.4 NV partitions: what `w` actually does
 
-Ini bagian yang paling mudah disalahpahami, dan perilakunya berasal dari kode tool
+This is the easiest part to misread, and the behaviour comes from the tool's code
 (`spreadtrum_flash`, sha1 `f2fc7792`):
 
-| Perintah | Yang benar-benar terjadi |
+| Command | What actually happens |
 |---|---|
-| `w l_runtimenv1 <file>` / `w l_runtimenv2 <file>` | partisi **dikosongkan**. Tool tidak menulis data apa pun untuk nama yang mengandung `runtimenv` (`common.c:1174`), jadi hasilnya `Erase Part Done`, bukan `Write Part Done`. |
-| `w l_fixnv1_a <file>` | berkas dibaca sebagai **paket NV**: header `0x200` dibuang, record di-parse, CRC16 dihitung ulang, lalu ditulis ulang (`load_nv_partition`). Isi partisi **tidak** byte-identik dengan berkas, jadi hash-nya tidak akan cocok dengan `SHA256SUMS-full_dump.txt`. |
-| `w l_fixnv2_a <file>` | ditulis mentah, byte-per-byte. |
-| `w calinv <file>` | **tidak melakukan apa pun** — nama `calinv` dilewati tool (`common.c:1175`). |
-| `w prodnv <file>`, `w persist <file>` | ditulis mentah. |
+| `w l_runtimenv1 <file>` / `w l_runtimenv2 <file>` | the partition is **erased**. The tool writes no data for any name containing `runtimenv` (`common.c:1174`), so the result is `Erase Part Done`, not `Write Part Done`. |
+| `w l_fixnv1_a <file>` | the file is read as an **NV packet**: the `0x200` header is dropped, the records are parsed, CRC16 is recomputed, and the result is written back (`load_nv_partition`). The partition contents are **not** byte-identical to the file, so its hash will not match `SHA256SUMS-full_dump.txt`. |
+| `w l_fixnv2_a <file>` | written raw, byte for byte. |
+| `w calinv <file>` | **does nothing**: the tool skips the name `calinv` (`common.c:1175`). |
+| `w prodnv <file>`, `w persist <file>` | written raw. |
 
-Kesimpulan praktis: dari rilis ini, partisi NV yang bisa dipulihkan dengan `w` adalah
-`l_fixnv2_a`, `prodnv`, dan `persist`. `l_runtimenv*` **tidak bisa** dipulihkan dengan tool ini
-(perintahnya menghapus), `l_fixnv1_a` hanya bisa dikembalikan sebagai paket NV hasil
-rekonstruksi (bukan byte asli), dan `calinv` tidak bisa ditulis sama sekali. Jangan jalankan
-perintah NV kalau tidak sedang memperbaiki HP ini sendiri; lihat peringatan di README.
+Practical conclusion: from this release, the NV partitions that `w` can restore are
+`l_fixnv2_a`, `prodnv`, and `persist`. `l_runtimenv*` **cannot** be restored with this tool
+(the command erases it), `l_fixnv1_a` can only be put back as a reconstructed NV packet (not
+the original bytes), and `calinv` cannot be written at all. Do not run NV commands unless you
+are repairing this very phone; see the warnings in the README.
 
-## 5. Verifikasi setelah flash
+## 5. Verify after flashing
 
-Lepas kabel, tekan **Power** sekali, tunggu. Boot pertama 2–4 menit.
+Unplug the cable, press **Power** once, and wait. The first boot takes 2–4 minutes.
 
 ```bash
 adb shell getprop ro.build.version.release      # 14
 adb shell getprop ro.build.display.id           # U01005 ...
-adb shell getprop ro.boot.verifiedbootstate     # green kalau bootloader terkunci
+adb shell getprop ro.boot.verifiedbootstate     # green when the bootloader is locked
 adb shell getprop sys.boot_completed            # 1
 ```
 
-Setelah restore stok tidak ada root, jadi bandingkan partisi dengan membacanya kembali lewat
-mode download, bukan lewat `adb shell su`. Jalankan dari folder terpisah supaya tidak menimpa
-image yang sudah diunduh:
+After a stock restore there is no root, so compare partitions by reading them back through
+download mode, not through `adb shell su`. Run it from a separate folder so the downloaded
+images are not overwritten:
 
 ```bash
 mkdir -p ~/mblu21-stock/readback
@@ -303,12 +306,12 @@ Q="exec_addr 0x65015f08 fdl fdl1-dl.bin 0x65000800 fdl fdl2-dl.bin 0x9efffe00 ex
 cd ../readback && sha256sum boot_a.bin init_boot_a.bin vbmeta_a.bin dtbo_a.bin
 ```
 
-Perintahnya tetap dijalankan **dari folder `tools`**: `exec_addr` membuka
-`custom_exec_no_verify_<addr>.bin` dan `fdl` membuka `fdl1-dl.bin`/`fdl2-dl.bin` relatif
-terhadap folder kerja (`spd_dump.c:758`). Berkas hasil `r` dialihkan ke `readback/` dengan
-perintah `path` milik tool ("save directory for `r`, `read_part(s)`, `read_flash`, `read_mem`").
+The command still runs **from the `tools` folder**: `exec_addr` opens
+`custom_exec_no_verify_<addr>.bin` and `fdl` opens `fdl1-dl.bin`/`fdl2-dl.bin` relative to
+the working folder (`spd_dump.c:758`). The files produced by `r` are redirected to `readback/`
+with the tool's `path` command ("save directory for `r`, `read_part(s)`, `read_flash`, `read_mem`").
 
-Nilainya harus sama dengan baris berkas yang sama di `SHA256SUMS-full_dump.txt`
+The values must match the line for the same file in `SHA256SUMS-full_dump.txt`
 (`boot_a` `3a78e139…`, `vbmeta_a` `83789a72…`). Windows:
 
 ```bat
@@ -322,25 +325,25 @@ powershell -c "Get-FileHash .\boot_a.bin, .\vbmeta_a.bin -Algorithm SHA256"
 
 ## 6. Troubleshooting
 
-| Gejala | Sebab | Tindakan |
+| Symptom | Cause | Action |
 |---|---|---|
-| `libusb_open_device failed`, `LIBUSB_ERROR_TIMEOUT`, `find port failed` | HP tidak di mode download, atau sesi sebelumnya masih memegang node USB | cabut, matikan 20 detik, tahan **Volume Up**, colok lagi |
-| HP boot ke Android, bukan mode download | Volume Up dilepas terlalu cepat | tahan sampai `lsusb` menampilkan `1782:4d00` |
-| Windows tidak melihat `SPD U2S Diag (COM<n>)` | driver Unisoc belum ada, atau path tool mengandung spasi | pasang `SPD_Driver\Win10\DPInst64.exe`, pindahkan tool ke `C:\mblu21\stock\tools` |
-| `Write Part Done` tidak pernah muncul, HP reboot | tombol yang ditahan salah | pakai **Volume Up** saja |
-| `LIBUSB_ERROR_IO` di tengah `super` | HP keluar dari mode download | masukkan lagi, ulangi perintah `super` — partisi mungkin sudah sebagian tertulis, jadi penulisan ulang wajib |
-| HP berhenti di logo Meizu | `vbmeta`, `vendor_boot`, atau `super` bukan dari build ini | tulis ulang `vbmeta_a` + rantai AVB + `super` dari rilis ini |
-| "Your device is corrupt" | `super` setengah tertulis | ulangi penulisan `super` dengan `timeout 600000` sampai `Write Part Done` |
-| `custom_exec_no_verify… not found` | tool dijalankan dari folder lain | `cd` ke folder `tools` dulu |
-| `w l_runtimenv1` menjawab `Erase Part Done` | memang begitu perilaku tool | jangan tulis partisi itu; lihat §4.4 |
+| `libusb_open_device failed`, `LIBUSB_ERROR_TIMEOUT`, `find port failed` | the phone is not in download mode, or the previous session still holds the USB node | unplug, power off for 20 seconds, hold **Volume Up**, plug in again |
+| The phone boots to Android, not download mode | Volume Up was released too early | hold it until `lsusb` shows `1782:4d00` |
+| Windows does not see `SPD U2S Diag (COM<n>)` | the Unisoc driver is missing, or the tool path contains spaces | install `SPD_Driver\Win10\DPInst64.exe`, move the tools to `C:\mblu21\stock\tools` |
+| `Write Part Done` never appears, the phone reboots | wrong button held | use **Volume Up** only |
+| `LIBUSB_ERROR_IO` in the middle of `super` | the phone left download mode | enter it again and repeat the `super` command; the partition may already be partly written, so the rewrite is mandatory |
+| The phone stops at the Meizu logo | `vbmeta`, `vendor_boot`, or `super` is not from this build | rewrite `vbmeta_a` + the AVB chain + `super` from this release |
+| "Your device is corrupt" | `super` is half written | repeat the `super` write with `timeout 600000` until `Write Part Done` |
+| `custom_exec_no_verify… not found` | the tool was run from another folder | `cd` into the `tools` folder first |
+| `w l_runtimenv1` answers `Erase Part Done` | that is how the tool behaves | do not write that partition; see §4.4 |
 
-## 7. Kenapa `fastboot` tidak dipakai di sini
+## 7. Why `fastboot` is not used here
 
-Di unit M416H, `fastboot flash` menerima `Sending … OKAY` lalu gagal:
+On the M416H, `fastboot flash` accepts `Sending … OKAY` and then fails:
 
 - `fastboot flash vbmeta`, `dtbo`, `vendor_boot` → `Status read failed (No such device)`;
-- `fastboot boot` tidak pernah menjalankan image.
+- `fastboot boot` never runs the image.
 
-Yang berfungsi hanya `fastboot getvar`, `fastboot reboot`, dan `fastboot devices`. Karena itu
-seluruh panduan ini memakai mode download Unisoc. BootROM tidak bisa ditimpa, jadi HP yang
-tidak mau boot tetap bisa dipulihkan lewat jalur ini.
+Only `fastboot getvar`, `fastboot reboot`, and `fastboot devices` work. That is why this whole
+guide uses Unisoc download mode. The BootROM cannot be overwritten, so a phone that will not
+boot can still be restored through this path.
