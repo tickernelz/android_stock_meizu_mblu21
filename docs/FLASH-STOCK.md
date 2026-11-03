@@ -100,7 +100,7 @@ Linux:
 mkdir -p ~/mblu21-stock && cd ~/mblu21-stock
 gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_meizu_mblu21
 cat super.bin.part0 super.bin.part1 super.bin.part2 > super.bin
-unzip -q tools-linux.zip && mv tools-linux tools
+unzip -oq tools-linux.zip && { [ -d tools ] || mv tools-linux tools; }
 chmod +x tools/spd_dump tools/gen_spl-unlock tools/chsize
 ./tools/spd_dump -h | head -1                # harus mencetak "branch:HEAD, sha1:f2fc7792…"
 sha256sum -c SHA256SUMS-full_dump.txt        # 44 baris (42 image partisi + payload tool + tabel partisi), semuanya "OK"
@@ -114,7 +114,7 @@ mkdir C:\mblu21\stock -Force; cd C:\mblu21\stock
 gh release download mblu21-stock-U01005-20261031 -R tickernelz/android_stock_meizu_mblu21
 cmd /c copy /b super.bin.part0+super.bin.part1+super.bin.part2 super.bin
 Expand-Archive tools-windows.zip -DestinationPath . -Force
-Rename-Item tools-windows tools
+if (-not (Test-Path tools)) { Rename-Item tools-windows tools }
 .\tools\spd_dump.exe -h | Select-Object -First 1   # harus mencetak "branch:HEAD, sha1:…"
 Get-FileHash .\boot_a.bin -Algorithm SHA256      # bandingkan dengan SHA256SUMS-full_dump.txt
 ```

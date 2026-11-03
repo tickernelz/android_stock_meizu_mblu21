@@ -38,6 +38,7 @@ jadi `super.bin` dipecah tiga bagian).
 | Tabel & ringkasan | `partition_1793459407.xml` (tabel partisi dari HP), `dump_summary.json` |
 | Tool | `tools-windows.zip` (`spd_dump.exe`, `gen_spl-unlock.exe`, `chsize.exe`, FDL loader, driver Unisoc), `tools-linux.zip` (biner Linux yang sama + aturan udev) |
 | Checksum | `SHA256SUMS-full_dump.txt` (hash dump apa adanya, `super.bin` utuh), `SHA256SUMS-logical.txt` (hash image logis) |
+| Catatan rilis | `RELEASE-NOTES.md` (ringkasan rilis; bukan bagian dump, tidak tercakup checksum) |
 
 `userdata` tidak ada di rilis ini: partisi itu berisi data pribadi dan memang tidak pernah
 di-dump.
